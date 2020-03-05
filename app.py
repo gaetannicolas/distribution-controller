@@ -13,17 +13,18 @@ db = firestore.client()
 app = Flask(__name__)
 
 GPIO.setmode(GPIO.BCM)
+GPIO.cleanup()
 
 pullupIndex = 25
 rows = [20, 21, 22, 23, 24]
-columns = [4, 5, 6, 12, 13]
+columns = [4, 5, 6, 12, 13, 14, 15, 16]
 
 # Setup defaults
 GPIO.setup(pullupIndex, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 for row in rows:
 	GPIO.setup(row, GPIO.OUT, initial=GPIO.HIGH)
 for column in columns:
-	GPIO.setup(column, GPIO.OUT, initial=GPIO.LOW)
+	GPIO.setup(column, GPIO.OUT, initial=GPIO.HIGH)
 
 def triggerMecanism(row, column, callback):
 	row0Indexed = row - 1
@@ -46,7 +47,7 @@ def resetMecanism():
 
 	# Handle columns
 	for column in columns:
-		 GPIO.output(column, GPIO.LOW)
+		 GPIO.output(column, GPIO.HIGH)
 
 
 def listenRotation(callback):
@@ -68,7 +69,7 @@ def listenRotation(callback):
 def on_snapshot(doc_snapshot, changes, read_time):
     for doc in doc_snapshot:
         print(u'Received document snapshot: {}'.format(doc.id))
-        triggerMecanism(2, 1, lambda : db.collection(u'games').document(doc.id).update({u'isTransmitted': True}))
+        triggerMecanism(1, 3, lambda : db.collection(u'games').document(doc.id).update({u'isTransmitted': True}))
 
 doc_ref = db.collection(u'games').where(u'isEnded', u'==', True).where(u'isTransmitted', u'==', False)
 
