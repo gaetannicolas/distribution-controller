@@ -3,6 +3,7 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
 import RPi.GPIO as GPIO
+from time import sleep
 
 cred = credentials.Certificate("./serviceAccountKey.json")
 firebase_admin.initialize_app(cred)
@@ -32,8 +33,9 @@ def sendLeds(ledRow, ledIndex, callback):
 	GPIO.output(ledRows[ledRow0Indexed], GPIO.LOW)
 
 	# Handle needed index
-	GPIO.output(ledIndexes[ledIndex0Indexed], GPIO.HIGH)
+	GPIO.output(ledIndexes[ledIndex0Indexed], GPIO.LOW)
 
+	sleep(1)
 	detectRotation(callback)
 
 
@@ -48,19 +50,24 @@ def resetLeds():
 
 
 def detectRotation(callback):
-	isRotating = True if GPIO.input(pullupIndex) == 0 else False
-	while isRotating:
+	revolutionIndicator = 0
+	while True:
 		if(GPIO.input(pullupIndex) == 1):
-			resetLeds()
-			callback()
-			isRotating = False
+			revolutionIndicator = revolutionIndicator + 1
+			sleep(3)
+			print(revolutionIndicator)
+			if(revolutionIndicator == 2):
+				resetLeds()
+				callback()
+				revolutionIndicator = 0
+				break
 
 
 # Create a callback on_snapshot function to capture changes
 def on_snapshot(doc_snapshot, changes, read_time):
     for doc in doc_snapshot:
         print(u'Received document snapshot: {}'.format(doc.id))
-        sendLeds(3, 2, lambda : db.collection(u'games').document(doc.id).update({u'isTransmitted': True}))
+        sendLeds(2, 1, lambda : db.collection(u'games').document(doc.id).update({u'isTransmitted': True}))
 
 doc_ref = db.collection(u'games').where(u'isEnded', u'==', True).where(u'isTransmitted', u'==', False)
 
