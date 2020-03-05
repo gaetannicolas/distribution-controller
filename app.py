@@ -15,59 +15,60 @@ app = Flask(__name__)
 GPIO.setmode(GPIO.BCM)
 
 pullupIndex = 25
-ledRows = [20, 21, 22, 23, 24]
-ledIndexes = [4, 5, 6, 12, 13]
+rows = [20, 21, 22, 23, 24]
+columns = [4, 5, 6, 12, 13]
 
 # Setup defaults
 GPIO.setup(pullupIndex, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-for item in ledRows:
-	GPIO.setup(item, GPIO.OUT, initial=GPIO.HIGH)
-for item in ledIndexes:
-	GPIO.setup(item, GPIO.OUT, initial=GPIO.LOW)
+for row in rows:
+	GPIO.setup(row, GPIO.OUT, initial=GPIO.HIGH)
+for column in columns:
+	GPIO.setup(column, GPIO.OUT, initial=GPIO.LOW)
 
-def sendLeds(ledRow, ledIndex, callback):
-	ledRow0Indexed = ledRow - 1
-	ledIndex0Indexed = ledIndex - 1
+def triggerMecanism(row, column, callback):
+	row0Indexed = row - 1
+	column0Indexed = column - 1
 
 	# Handle needed row
-	GPIO.output(ledRows[ledRow0Indexed], GPIO.LOW)
+	GPIO.output(rows[row0Indexed], GPIO.LOW)
 
-	# Handle needed index
-	GPIO.output(ledIndexes[ledIndex0Indexed], GPIO.LOW)
+	# Handle needed column
+	GPIO.output(columns[column0Indexed], GPIO.LOW)
 
 	sleep(1)
-	detectRotation(callback)
+	listenRotation(callback)
 
 
-def resetLeds():
-	# Handle rows
-	for item in ledRows:
-		 GPIO.output(item, GPIO.HIGH)
+def resetMecanism():
+	# Handle rows 
+	for row in rows:
+		 GPIO.output(row, GPIO.HIGH)
 
-	# Handle indexes
-	for item in ledIndexes:
-		 GPIO.output(item, GPIO.LOW)
+	# Handle columns
+	for column in columns:
+		 GPIO.output(column, GPIO.LOW)
 
 
-def detectRotation(callback):
+def listenRotation(callback):
 	revolutionIndicator = 0
+	lastGPIOInput = GPIO.input(pullupIndex)
 	while True:
-		if(GPIO.input(pullupIndex) == 1):
-			revolutionIndicator = revolutionIndicator + 1
-			sleep(3)
-			print(revolutionIndicator)
-			if(revolutionIndicator == 2):
-				resetLeds()
-				callback()
-				revolutionIndicator = 0
-				break
+		if (GPIO.input(pullupIndex) != lastGPIOInput):
+			if (GPIO.input(pullupIndex) == 1):
+				revolutionIndicator = revolutionIndicator + 1
+			lastGPIOInput = GPIO.input(pullupIndex)
+		if(revolutionIndicator == 2):
+			resetMecanism()
+			callback()
+			revolutionIndicator = 0
+			break
 
 
 # Create a callback on_snapshot function to capture changes
 def on_snapshot(doc_snapshot, changes, read_time):
     for doc in doc_snapshot:
         print(u'Received document snapshot: {}'.format(doc.id))
-        sendLeds(2, 1, lambda : db.collection(u'games').document(doc.id).update({u'isTransmitted': True}))
+        triggerMecanism(2, 1, lambda : db.collection(u'games').document(doc.id).update({u'isTransmitted': True}))
 
 doc_ref = db.collection(u'games').where(u'isEnded', u'==', True).where(u'isTransmitted', u'==', False)
 
