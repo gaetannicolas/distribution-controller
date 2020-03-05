@@ -69,7 +69,13 @@ def listenRotation(callback):
 def on_snapshot(doc_snapshot, changes, read_time):
     for doc in doc_snapshot:
         print(u'Received document snapshot: {}'.format(doc.id))
-        triggerMecanism(1, 3, lambda : db.collection(u'games').document(doc.id).update({u'isTransmitted': True}))
+        docData = doc.to_dict()
+        questions = docData.get('questions')
+        rewardRowIndex = sum(questions)
+        if(rewardRowIndex > 0):
+            triggerMecanism(rewardRowIndex, 8, lambda : db.collection(u'games').document(doc.id).update({u'isTransmitted': True}))
+        else:
+            db.collection(u'games').document(doc.id).update({u'isTransmitted': True})
 
 doc_ref = db.collection(u'games').where(u'isEnded', u'==', True).where(u'isTransmitted', u'==', False)
 
