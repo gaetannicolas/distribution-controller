@@ -74,7 +74,7 @@ def on_snapshot(doc_snapshot, changes, read_time):
         print(u'Received document snapshot: {}'.format(doc.id))
         docData = doc.to_dict()
         results = docData.get('results')
-        rewardRowIndex = sum(questions)
+        rewardRowIndex = sum(results)
         if(rewardRowIndex > 0):
             triggerMecanism(rewardRowIndex, 8, lambda : db.collection(u'games').document(doc.id).update({u'isTransmitted': True}))
         else:
