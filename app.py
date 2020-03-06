@@ -17,7 +17,7 @@ GPIO.setmode(GPIO.BCM)
 pullupIndex = 25
 rows = [20, 21, 22, 23, 24]
 columns = [4, 5, 6, 12, 13, 14, 15, 16]
-newGame = {"isScanned": False, "isEnded": False, "isTransmitted": False, "user": None, "questions": []}
+newGame = {"isScanned": False, "isEnded": False, "isTransmitted": False, "user": None, "results": []}
 
 # Setup defaults
 GPIO.setup(pullupIndex, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -73,7 +73,7 @@ def on_snapshot(doc_snapshot, changes, read_time):
     for doc in doc_snapshot:
         print(u'Received document snapshot: {}'.format(doc.id))
         docData = doc.to_dict()
-        questions = docData.get('questions')
+        results = docData.get('results')
         rewardRowIndex = sum(questions)
         if(rewardRowIndex > 0):
             triggerMecanism(rewardRowIndex, 8, lambda : db.collection(u'games').document(doc.id).update({u'isTransmitted': True}))
