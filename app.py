@@ -13,11 +13,11 @@ db = firestore.client()
 app = Flask(__name__)
 
 GPIO.setmode(GPIO.BCM)
-GPIO.cleanup()
 
 pullupIndex = 25
 rows = [20, 21, 22, 23, 24]
 columns = [4, 5, 6, 12, 13, 14, 15, 16]
+newGame = {"isScanned": False, "isEnded": False, "isTransmitted": False, "user": None, "questions": []}
 
 # Setup defaults
 GPIO.setup(pullupIndex, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -77,6 +77,7 @@ def on_snapshot(doc_snapshot, changes, read_time):
             triggerMecanism(rewardRowIndex, 8, lambda : db.collection(u'games').document(doc.id).update({u'isTransmitted': True}))
         else:
             db.collection(u'games').document(doc.id).update({u'isTransmitted': True})
+        db.collection(u'games').add(newGame)
 
 doc_ref = db.collection(u'games').where(u'isEnded', u'==', True).where(u'isTransmitted', u'==', False)
 
@@ -84,6 +85,6 @@ doc_ref = db.collection(u'games').where(u'isEnded', u'==', True).where(u'isTrans
 # Watch the document
 doc_watch = doc_ref.on_snapshot(on_snapshot)
 
-app.run(debug=True, host='0.0.0.0')
+app.run(debug=False, host='0.0.0.0')
 
 
