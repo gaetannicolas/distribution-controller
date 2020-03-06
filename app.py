@@ -65,6 +65,8 @@ def listenRotation(callback):
 			revolutionIndicator = 0
 			break
 
+#Create an empty game at server run
+db.collection(u'games').add(newGame)
 
 # Create a callback on_snapshot function to capture changes
 def on_snapshot(doc_snapshot, changes, read_time):
