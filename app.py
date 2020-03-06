@@ -27,6 +27,7 @@ for column in columns:
 	GPIO.setup(column, GPIO.OUT, initial=GPIO.HIGH)
 
 def triggerMecanism(row, column, callback):
+	
 	row0Indexed = row - 1
 	column0Indexed = column - 1
 
@@ -43,12 +44,12 @@ def triggerMecanism(row, column, callback):
 def resetMecanism():
 	# Handle rows 
 	for row in rows:
-		 GPIO.output(row, GPIO.HIGH)
+		 GPIO.setup(row, GPIO.OUT, initial=GPIO.HIGH)
 
 	# Handle columns
 	for column in columns:
-		 GPIO.output(column, GPIO.HIGH)
-
+		 GPIO.setup(column, GPIO.OUT, initial=GPIO.HIGH)
+		 
 
 def listenRotation(callback):
 	revolutionIndicator = 0
